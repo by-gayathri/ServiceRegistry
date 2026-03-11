@@ -14,7 +14,7 @@ import sys
 from threading import Thread, Event
 
 class ServiceClient:
-    def __init__(self, service_name, service_address, registry_url="http://localhost:5000"):
+    def __init__(self, service_name, service_address, registry_url="http://localhost:5001"):
         self.service_name = service_name
         self.service_address = service_address
         self.registry_url = registry_url
@@ -24,20 +24,36 @@ class ServiceClient:
     def register(self):
         """Register this service with the registry"""
         try:
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            
             response = requests.post(
                 f"{self.registry_url}/register",
                 json={
                     "service": self.service_name,
                     "address": self.service_address
-                }
+                },
+                headers=headers,
+                timeout=5
             )
             
             if response.status_code in [200, 201]:
                 print(f"✓ Registered {self.service_name} at {self.service_address}")
                 return True
             else:
-                print(f"✗ Registration failed: {response.json()}")
+                print(f"✗ Registration failed (status {response.status_code})")
+                print(f"   Response: {response.text if response.text else 'Empty response'}")
+                print(f"   URL: {self.registry_url}/register")
                 return False
+        except requests.exceptions.ConnectionError:
+            print(f"✗ Cannot connect to registry at {self.registry_url}")
+            print(f"   Make sure the registry is running: python3 service_registry_improved.py")
+            return False
+        except requests.exceptions.Timeout:
+            print(f"✗ Connection timeout to registry at {self.registry_url}")
+            return False
         except Exception as e:
             print(f"✗ Registration error: {e}")
             return False
