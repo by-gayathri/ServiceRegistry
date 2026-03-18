@@ -1,448 +1,271 @@
-# Service Registry - Distributed System Learning Project
+---
 
-A simple but functional service registry implementation for understanding service discovery in distributed systems.
+# 📦 Microservice with Service Discovery & Service Mesh (Linkerd)
 
-## 🚀 Quick Start
+## 📌 Overview
 
-### Prerequisites
+This project demonstrates a **microservice-based architecture** with:
 
-Python 3.8 or higher
+* Multiple service instances
+* Service discovery using Kubernetes Services
+* Client-side interaction using service names
+* Service mesh integration using **Linkerd**
 
-### Installation
+The system shows how microservices can dynamically discover each other, balance traffic, and remain resilient under failures.
 
-1. **Clone the repository:**
-```bash
-git clone https://github.com/ranjanr/ServiceRegistry.git
-cd ServiceRegistry
-```
+---
 
-2. **Create a virtual environment (Python 3.13+):**
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+## 🎯 Objectives
 
-3. **Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
+- Run **multiple instances** of a service
+- Enable **service discovery**
+- Demonstrate **load balancing**
+- Integrate **service mesh (Linkerd)**
+- Show **observability and fault tolerance**
 
-### Running the Service Registry
-
-```bash
-# Make sure virtual environment is activated
-source venv/bin/activate
-
-# Start the registry
-python3 service_registry_improved.py
-```
-
-You should see:
-```
-Service Registry starting on port 5000...
-Heartbeat timeout: 30s
-Cleanup interval: 10s
-```
-
-## 📚 What is a Service Registry?
-
-A **Service Registry** is a database of available service instances in a distributed system. It enables:
-
-- **Service Registration**: Services register themselves when they start
-- **Service Discovery**: Services can find and communicate with each other
-- **Health Monitoring**: Track which services are alive and healthy
-- **Load Balancing**: Distribute requests across multiple service instances
+---
 
 ## 🏗️ Architecture
 
-```
-┌─────────────┐         ┌─────────────────┐         ┌─────────────┐
-│  Service A  │────────▶│ Service Registry │◀────────│  Service B  │
-│ (Port 8001) │ Register│   (Port 5000)    │ Discover│ (Port 8002) │
-└─────────────┘         └─────────────────┘         └─────────────┘
-      │                          │                          │
-      └──────── Heartbeat ───────┘                          │
-                                 └──────── Heartbeat ───────┘
-```
+```mermaid
+flowchart LR
+    Client --> ServiceDNS[Kubernetes Service]
 
-## 📁 Project Files
+    ServiceDNS --> U1[user-service Pod 1]
+    ServiceDNS --> U2[user-service Pod 2]
 
-### 1. `service_registry.py` (Original Example)
-The basic implementation you provided - simple but functional.
+    ServiceDNS --> P1[payment-service Pod]
 
-**Pros:**
-- ✅ Simple and easy to understand
-- ✅ Core functionality works
+    U1 --- L1[Linkerd Sidecar]
+    U2 --- L2[Linkerd Sidecar]
+    P1 --- L3[Linkerd Sidecar]
 
-**Cons:**
-- ❌ No error handling
-- ❌ No health checks
-- ❌ No way to remove services
-- ❌ Services stay registered forever (even if they crash)
-
-### 2. `service_registry_improved.py` (Production-Ready)
-Enhanced version with enterprise features.
-
-**New Features:**
-- ✅ **Error Handling**: Proper validation and error responses
-- ✅ **Health Checks**: Heartbeat mechanism to detect dead services
-- ✅ **Deregistration**: Services can unregister gracefully
-- ✅ **Auto Cleanup**: Removes stale services automatically
-- ✅ **Thread Safety**: Uses locks for concurrent access
-- ✅ **Detailed Responses**: Rich JSON responses with metadata
-- ✅ **Service Listing**: View all registered services
-
-### 3. `example_service.py`
-Demo client showing how services interact with the registry.
-
-### 4. Kubernetes/Minikube Deployment
-- **Dockerfile** - Container image for the registry
-- **k8s/** - Kubernetes manifests for deployment
-- **KUBERNETES.md** - Complete Kubernetes deployment guide
-- **deploy-minikube.sh** - Automated deployment script
-
-### 5. HashiCorp Consul Integration
-- **consul_client.py** - Consul service discovery client
-- **CONSUL.md** - Production-grade service registry guide
-- Compare custom implementation with industry-standard Consul
-
-## 🚀 Getting Started
-
-Choose your learning path:
-
-### Option 1: Local Development (Recommended for Learning)
-
-#### Prerequisites
-
-Python 3.8 or higher
-
-#### Installation
-
-1. **Clone the repository:**
-```bash
-git clone https://github.com/ranjanr/ServiceRegistry.git
-cd ServiceRegistry
+    L1 -.-> CP[Linkerd Control Plane]
+    L2 -.-> CP
+    L3 -.-> CP
 ```
 
-2. **Create a virtual environment:**
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+### 🔍 Explanation
 
-3. **Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
+- **Client (curl pod)** sends requests using service names
+- **Kubernetes Service** handles service discovery
+- **Multiple pods** provide scalability
+- **Linkerd sidecars** intercept traffic and provide:
+  - Load balancing
+  - Observability
+  - Reliability
 
-#### Running the Registry
+---
 
-**Basic Version:**
-```bash
-python3 service_registry.py
-```
+## 🛠️ Tech Stack
 
-**Improved Version (Recommended):**
-```bash
-python3 service_registry_improved.py
-```
-
-The registry will start on `http://localhost:5001`
-
-### Option 2: Kubernetes/Minikube (Production-like Environment)
-
-#### Prerequisites
-
-- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
-- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- Kubernetes (Docker Desktop / Minikube)
+- Python (Flask)
 - Docker
+- Linkerd (Service Mesh)
+- curl (for testing)
 
-#### Quick Deploy
+---
 
-```bash
-# One-command deployment
-./deploy-minikube.sh
+## 📁 Project Structure
+
+```
+.
+├── example_service.py
+├── app.yaml
+├── Dockerfile
+├── requirements.txt
+└── README.md
 ```
 
-This will:
-1. Start Minikube (if not running)
-2. Build Docker image
-3. Deploy registry and example services
-4. Show access URLs and test commands
+---
 
-#### Manual Deploy
+## ⚙️ Setup Instructions
+
+### 1. Start Kubernetes
+
+Enable Kubernetes in Docker Desktop or run:
 
 ```bash
-# Start Minikube
 minikube start
+```
 
-# Build image
-eval $(minikube docker-env)
+---
+
+### 2. Install Linkerd
+
+```bash
+linkerd install --crds | kubectl apply -f -
+linkerd install --set proxyInit.runAsRoot=true | kubectl apply -f -
+linkerd check
+```
+
+Install dashboard:
+
+```bash
+linkerd viz install | kubectl apply -f -
+linkerd viz check
+```
+
+---
+
+### 3. Build Docker Image
+
+```bash
 docker build -t service-registry:latest .
-
-# Deploy
-kubectl apply -f k8s/registry-deployment.yaml
-kubectl apply -f k8s/example-service-deployment.yaml
-
-# Access
-minikube ip  # Get IP
-curl http://<MINIKUBE_IP>:30001/health
 ```
 
-**See [KUBERNETES.md](KUBERNETES.md) for complete guide.**
+---
 
-### Testing with Example Services
+### 4. Deploy Application
 
-**Terminal 1: Start the Registry**
 ```bash
-python service_registry_improved.py
+kubectl apply -f app.yaml
+kubectl get pods -n demo
 ```
 
-**Terminal 2: Start User Service**
+---
+
+### 5. Create Test Client (curl pod)
+
 ```bash
-python example_service.py user-service 8001
+kubectl -n demo run curl \
+  --image=curlimages/curl \
+  --restart=Never \
+  --overrides='{"metadata":{"annotations":{"linkerd.io/inject":"disabled"}}}' \
+  --command -- sleep 3600
 ```
 
-**Terminal 3: Start Payment Service**
+Access it:
+
 ```bash
-python example_service.py payment-service 8002
+kubectl -n demo exec -it pod/curl -c curl -- sh
 ```
 
-**Terminal 4: Run Discovery Demo**
+---
+
+## 🧪 Testing
+
+### 🔹 Service Discovery
+
 ```bash
-python example_service.py demo
+curl user-service
+curl payment-service
 ```
 
-## 📡 API Endpoints
+---
 
-### 1. Register a Service
-```http
-POST /register
-Content-Type: application/json
+### 🔹 Load Balancing
 
-{
-  "service": "user-service",
-  "address": "http://localhost:8001"
-}
+```bash
+while true; do curl user-service; echo; sleep 1; done
 ```
 
-**Response:**
+👉 Output will show different pod names → proves load balancing
+
+---
+
+### 🔹 Observability
+
+```bash
+linkerd stat deploy -n demo
+```
+
+---
+
+### 🔹 Live Traffic Monitoring
+
+```bash
+linkerd viz tap deploy/user-service -n demo
+```
+
+---
+
+### 🔹 Failure Handling
+
+Delete one pod:
+
+```bash
+kubectl delete pod -n demo <pod-name>
+```
+
+👉 Service continues working → fault tolerance
+
+---
+
+## 📊 Sample Output
+
 ```json
 {
-  "status": "registered",
-  "message": "Service user-service registered at http://localhost:8001"
-}
-```
-
-### 2. Discover a Service
-```http
-GET /discover/user-service
-```
-
-**Response:**
-```json
-{
   "service": "user-service",
-  "instances": [
-    {
-      "address": "http://localhost:8001",
-      "uptime_seconds": 45.2
-    }
-  ],
-  "count": 1
+  "pod": "user-service-abc123",
+  "port": 8001
 }
 ```
 
-### 3. Send Heartbeat
-```http
-POST /heartbeat
-Content-Type: application/json
+---
 
-{
-  "service": "user-service",
-  "address": "http://localhost:8001"
-}
-```
+## 🚀 Key Features
 
-### 4. Deregister a Service
-```http
-POST /deregister
-Content-Type: application/json
+### ✅ Service Discovery
 
-{
-  "service": "user-service",
-  "address": "http://localhost:8001"
-}
-```
+Services communicate using names (`user-service`) instead of IPs.
 
-### 5. List All Services
-```http
-GET /services
-```
+### ✅ Load Balancing
 
-**Response:**
-```json
-{
-  "services": {
-    "user-service": {
-      "total_instances": 2,
-      "active_instances": 2
-    },
-    "payment-service": {
-      "total_instances": 1,
-      "active_instances": 1
-    }
-  },
-  "total_services": 2
-}
-```
+Traffic is distributed across multiple service instances.
 
-### 6. Health Check
-```http
-GET /health
-```
+### ✅ Service Mesh (Linkerd)
 
-## 🔍 Key Concepts Explained
+- Automatic proxy injection
+- Transparent communication
+- No code changes required
 
-### 1. Service Registration
-When a service starts, it tells the registry:
-- **Who am I?** (service name)
-- **Where am I?** (address/port)
+### ✅ Observability
 
-```python
-# Service registers itself
-requests.post("http://registry:5001/register", json={
-    "service": "user-service",
-    "address": "http://localhost:8001"
-})
-```
+- Request rate
+- Latency
+- Success rate
 
-### 2. Service Discovery
-When a service needs to call another service:
-- Ask the registry for available instances
-- Get list of addresses
-- Choose one (round-robin, random, etc.)
+### ✅ Fault Tolerance
 
-```python
-# Discover payment service
-response = requests.get("http://registry:5001/discover/payment-service")
-instances = response.json()['instances']
-payment_url = instances[0]['address']  # Use first instance
-```
+System continues working even when a pod fails.
 
-### 3. Heartbeat Mechanism
-Services periodically send "I'm alive" signals:
-- Prevents stale entries
-- Detects crashed services
-- Registry removes services that stop sending heartbeats
+---
 
-```python
-# Send heartbeat every 10 seconds
-while True:
-    requests.post("http://registry:5001/heartbeat", json={
-        "service": "user-service",
-        "address": "http://localhost:8001"
-    })
-    time.sleep(10)
-```
+## 🔁 Without vs With Service Mesh
 
-### 4. Graceful Shutdown
-When a service stops, it should deregister:
-- Prevents clients from calling dead services
-- Keeps registry clean
+| Feature           | Without Mesh | With Linkerd |
+| ----------------- | ------------ | ------------ |
+| Service Discovery | Manual       | Automatic    |
+| Load Balancing    | Manual       | Automatic    |
+| Observability     | Limited      | Built-in     |
+| Security          | Manual       | mTLS ready   |
 
-```python
-# On shutdown
-requests.post("http://registry:5001/deregister", json={
-    "service": "user-service",
-    "address": "http://localhost:8001"
-})
-```
+---
 
-## 🎯 Real-World Use Cases
+## 🧠 Conclusion
 
-### Netflix Eureka
-Netflix uses a similar pattern with their Eureka service registry:
-- Microservices register on startup
-- Other services discover them dynamically
-- Handles thousands of service instances
+This project demonstrates how modern microservice systems:
 
-### Kubernetes Service Discovery
-Kubernetes has built-in service discovery:
-- Services register via DNS
-- Load balancing across pods
-- Health checks and auto-restart
+- Scale using multiple instances
+- Discover services dynamically
+- Use service mesh for advanced features
 
-### Consul by HashiCorp
-Production-grade service registry with:
-- Health checking
-- Key-value store
-- Multi-datacenter support
+Linkerd simplifies microservice communication by moving networking logic outside application code.
 
-## 🔧 Improvements You Could Add
+---
 
-1. **Persistence**: Save registry to disk/database
-2. **Load Balancing**: Return instances in round-robin order
-3. **Service Metadata**: Store version, tags, capabilities
-4. **Authentication**: Secure the registry endpoints
-5. **Monitoring**: Add metrics and logging
-6. **Clustering**: Multiple registry instances for high availability
-7. **Service Mesh**: Integrate with Istio or Linkerd
+## 📸 Screenshots (Add here)
 
-## 🧪 Testing with cURL
+- Linkerd Dashboard
+- `linkerd stat` output
+- Load balancing output
 
-```bash
-# Register a service
-curl -X POST http://localhost:5001/register \
-  -H "Content-Type: application/json" \
-  -d '{"service": "test-service", "address": "http://localhost:9000"}'
+---
 
-# Discover services
-curl http://localhost:5001/discover/test-service
+## 👩‍💻 Author
 
-# List all services
-curl http://localhost:5001/services
+Gayathri
 
-# Send heartbeat
-curl -X POST http://localhost:5001/heartbeat \
-  -H "Content-Type: application/json" \
-  -d '{"service": "test-service", "address": "http://localhost:9000"}'
-
-# Deregister
-curl -X POST http://localhost:5001/deregister \
-  -H "Content-Type: application/json" \
-  -d '{"service": "test-service", "address": "http://localhost:9000"}'
-```
-
-## 📊 Comparison: Original vs Improved
-
-| Feature | Original | Improved |
-|---------|----------|----------|
-| Registration | ✅ | ✅ |
-| Discovery | ✅ | ✅ |
-| Error Handling | ❌ | ✅ |
-| Heartbeats | ❌ | ✅ |
-| Deregistration | ❌ | ✅ |
-| Auto Cleanup | ❌ | ✅ |
-| Thread Safety | ❌ | ✅ |
-| Service Listing | ❌ | ✅ |
-| Health Endpoint | ❌ | ✅ |
-| Uptime Tracking | ❌ | ✅ |
-
-## 🎓 Learning Resources
-
-- **Microservices Patterns** by Chris Richardson
-- **Building Microservices** by Sam Newman
-- **Martin Fowler's Blog**: https://martinfowler.com/articles/microservices.html
-
-## 📝 License
-
-This is a learning project - feel free to use and modify as needed!
-
-## 🤝 Contributing
-
-This is an educational project. Feel free to:
-- Add new features
-- Improve documentation
-- Create additional examples
-- Share your learnings!
+---
