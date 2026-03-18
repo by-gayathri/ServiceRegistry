@@ -13,6 +13,9 @@ import signal
 import sys
 from threading import Thread, Event
 
+from flask import Flask
+import socket
+
 class ServiceClient:
     def __init__(self, service_name, service_address, registry_url="http://localhost:5001"):
         self.service_name = service_name
@@ -126,30 +129,30 @@ class ServiceClient:
             return []
     
     def start(self):
-        """Start the service and register with registry"""
-        # Register
         if not self.register():
-            print("Failed to register. Exiting.")
-            return
-        
+            print("Failed to register. Continuing anyway...")
+
         # Start heartbeat thread
         heartbeat_thread = Thread(target=self.heartbeat_loop, daemon=True)
         heartbeat_thread.start()
-        
-        print(f"\n{self.service_name} is running...")
-        print("Press Ctrl+C to stop\n")
-        
-        # Setup signal handler for graceful shutdown
-        def signal_handler(sig, frame):
-            print("\n\nShutting down gracefully...")
-            self.stop()
-            sys.exit(0)
-        
-        signal.signal(signal.SIGINT, signal_handler)
-        
-        # Keep the main thread alive
-        while not self.stop_event.is_set():
-            time.sleep(1)
+
+        app = Flask(__name__)
+        hostname = socket.gethostname()
+
+        # FIX: assume port is passed directly (e.g., "8001")
+        port = int(self.service_address)
+
+        @app.route("/")
+        def home():
+            return {
+                "service": self.service_name,
+                "pod": hostname,
+                "port": port
+            }
+
+        print(f"{self.service_name} running on pod {hostname} port {port}")
+
+        app.run(host="0.0.0.0", port=port)
     
     def stop(self):
         """Stop the service and deregister"""
@@ -208,8 +211,7 @@ if __name__ == "__main__":
     else:
         service_name = sys.argv[1]
         port = sys.argv[2]
-        service_address = f"http://localhost:{port}"
-        
+        service_address = port
         client = ServiceClient(service_name, service_address)
         client.start()
 
