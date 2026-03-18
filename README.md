@@ -1,15 +1,13 @@
----
-
 # 📦 Microservice with Service Discovery & Service Mesh (Linkerd)
 
 ## 📌 Overview
 
 This project demonstrates a **microservice-based architecture** with:
 
-* Multiple service instances
-* Service discovery using Kubernetes Services
-* Client-side interaction using service names
-* Service mesh integration using **Linkerd**
+- Multiple service instances
+- Service discovery using Kubernetes Services
+- Client-side interaction using service names
+- Service mesh integration using **Linkerd**
 
 The system shows how microservices can dynamically discover each other, balance traffic, and remain resilient under failures.
 
@@ -148,6 +146,8 @@ kubectl -n demo exec -it pod/curl -c curl -- sh
 
 ### 🔹 Service Discovery
 
+Inside the curl pod, test service discovery:
+
 ```bash
 curl user-service
 curl payment-service
@@ -156,6 +156,8 @@ curl payment-service
 ---
 
 ### 🔹 Load Balancing
+
+Run multiple requests to see load balancing:
 
 ```bash
 while true; do curl user-service; echo; sleep 1; done
